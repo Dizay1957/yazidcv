@@ -1,0 +1,17 @@
+package dev.yazidcv.common;
+import dev.yazidcv.candidate.*; import dev.yazidcv.identity.TenantContext; import dev.yazidcv.job.*; import dev.yazidcv.organization.*; import dev.yazidcv.review.*; import org.springframework.beans.factory.annotation.Value; import org.springframework.boot.CommandLineRunner; import org.springframework.context.annotation.*; import org.springframework.transaction.annotation.Transactional; import java.time.LocalDate; import java.util.*;
+@Configuration public class DemoDataInitializer{
+ @Bean CommandLineRunner seed(OrganizationRepository orgs,CandidateRepository candidates,JobRepository jobs,ReviewRepository reviews,@Value("${yazidcv.seed-demo:false}")boolean seedDemo){return args->seedData(orgs,candidates,jobs,reviews,seedDemo);}
+ @Transactional void seedData(OrganizationRepository orgs,CandidateRepository candidates,JobRepository jobs,ReviewRepository reviews,boolean seedDemo){UUID org=TenantContext.DEMO_ORG;if(!orgs.existsById(org))orgs.save(new Organization(org,"YazidCV Workspace","yazidcv-workspace"));if(!seedDemo||candidates.countByOrganizationIdAndActiveTrue(org)>0)return;
+  var specs=List.of(
+   new Object[]{"Leila","Mansouri","leila.mansouri@example.com","Senior Backend Engineer","Atlas Cloud","Casablanca","Morocco",7,"SHORTLISTED",94,List.of("Java","Spring Boot","Kafka")},
+   new Object[]{"Youssef","Kabbaj","youssef.kabbaj@example.com","Platform Engineer","Northstack","Rabat","Morocco",6,"INTERVIEW",89,List.of("Kubernetes","AWS","Terraform")},
+   new Object[]{"Sophie","Chen","sophie.chen@example.com","Full-stack Developer","Meridian Labs","Paris","France",5,"IN_REVIEW",86,List.of("React","TypeScript","Java")},
+   new Object[]{"Amine","Ouazzani","amine.ouazzani@example.com","Java Software Engineer","Nexa Digital","Tangier","Morocco",4,"NEW",82,List.of("Java","PostgreSQL","Docker")});
+  List<Candidate> saved=new ArrayList<>();for(Object[] s:specs){var c=new Candidate(org,(String)s[0],(String)s[1]);c.seed((String)s[2],(String)s[3],(String)s[4],(String)s[5],(String)s[6],(int)s[7],(String)s[8],(int)s[9],(List<String>)s[10],"Experienced recruitment candidate with verified delivery evidence and a strong record of cross-functional collaboration.");saved.add(candidates.save(c));}
+  var j1=new JobOpening(org,"Senior Java Engineer");j1.seed("Platform","Casablanca","HYBRID",List.of("Java","Spring Boot","Kafka"),"OPEN",48,LocalDate.now().plusDays(18));jobs.save(j1);
+  var j2=new JobOpening(org,"Cloud Platform Engineer");j2.seed("Infrastructure","Rabat","REMOTE",List.of("Kubernetes","AWS","Terraform"),"OPEN",31,LocalDate.now().plusDays(24));jobs.save(j2);
+  var j3=new JobOpening(org,"Frontend Engineer");j3.seed("Product","Paris","HYBRID",List.of("React","TypeScript"),"OPEN",26,LocalDate.now().plusDays(12));jobs.save(j3);
+  reviews.save(new ReviewTask(org,saved.get(0).getId(),"Contact details conflict",62,"HIGH"));reviews.save(new ReviewTask(org,saved.get(1).getId(),"Low OCR confidence",71,"MEDIUM"));reviews.save(new ReviewTask(org,saved.get(2).getId(),"Experience dates overlap",78,"NORMAL"));
+ }
+}

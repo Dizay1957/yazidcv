@@ -1,0 +1,52 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: yazidcv
+      POSTGRES_USER: ${DATABASE_USERNAME:-yazidcv}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-local-development-only}
+    volumes: [postgres_data:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 15
+    networks: [yazidcv]
+  backend:
+    build: ./backend
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DATABASE_URL: jdbc:postgresql://postgres:5432/yazidcv
+      DATABASE_USERNAME: ${DATABASE_USERNAME:-yazidcv}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-local-development-only}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      CORS_ORIGIN: http://localhost:3000
+      UPLOAD_DIRECTORY: /app/data/uploads
+      PORT: 8080
+    volumes: [cv_uploads:/app/data/uploads]
+    ports: ["8080:8080"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/actuator/health/readiness"]
+      interval: 10s
+      timeout: 3s
+      retries: 12
+    networks: [yazidcv]
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: http://localhost:8080/api/v1
+    ports: ["3000:80"]
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks: [yazidcv]
+volumes:
+  postgres_data:
+  cv_uploads:
+networks:
+  yazidcv:
+    driver: bridge

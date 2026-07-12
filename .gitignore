@@ -1,0 +1,15 @@
+.env
+.env.*
+!.env.example
+node_modules/
+dist/
+.vite/
+*.log
+backend/data/
+data/
+backend/target/
+frontend/*.tsbuildinfo
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,14 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:yazidcv-test;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+yazidcv:
+  jwt-secret: integration-test-secret-that-is-longer-than-thirty-two-bytes
+  jwt-issuer: yazidcv-test
+  upload-directory: ./target/test-uploads
+  seed-demo: true
+  cors-origin: http://localhost:5173
