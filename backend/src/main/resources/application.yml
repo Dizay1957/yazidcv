@@ -1,6 +1,6 @@
 spring:
   application:
-    name: yazidcv
+    name: curriva
   datasource:
     url: ${DATABASE_URL:jdbc:h2:file:./data/yazidcv;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH}
     username: ${DATABASE_USERNAME:sa}
@@ -32,7 +32,7 @@ management:
         enabled: true
 yazidcv:
   jwt-secret: ${JWT_SECRET:change-this-development-secret-with-at-least-32-bytes}
-  jwt-issuer: yazidcv
+  jwt-issuer: curriva
   upload-directory: ${UPLOAD_DIRECTORY:./data/uploads}
   cors-origin: ${CORS_ORIGIN:http://localhost:5173}
   seed-demo: ${SEED_DEMO:false}
@@ -43,6 +43,9 @@ yazidcv:
     indeed:
       client-id: ${INDEED_CLIENT_ID:}
       client-secret: ${INDEED_CLIENT_SECRET:}
+curriva:
+  bootstrap-admin-email: ${BOOTSTRAP_ADMIN_EMAIL:admin@curriva.local}
+  bootstrap-admin-password: ${BOOTSTRAP_ADMIN_PASSWORD:CurrivaAdmin!2026}
 logging:
   level:
     root: INFO

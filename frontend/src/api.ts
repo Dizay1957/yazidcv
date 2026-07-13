@@ -7,6 +7,8 @@ export type Review = { id: string; candidateId: string; candidateName: string; i
 export type CvDocument = { id: string; candidateId?: string; originalFilename: string; contentType: string; fileSize: number; status: string; extractionMethod?: string; processingError?: string; uploadedAt: string; completedAt?: string }
 export type Dashboard = { openJobs: number; activeCandidates: number; awaitingReview: number; failedProcessing: number; candidatesThisWeek: number; averageProcessingSeconds: number; activity: { day: string; applications: number }[] }
 export type IntegrationStatus = { provider: 'LINKEDIN' | 'INDEED'; name: string; status: 'CONFIGURED' | 'ACTION_REQUIRED'; configured: boolean; requirement: string; onboardingUrl: string }
+export type Team = { id: string; name: string; description?: string }
+export type ManagedUser = { id: string; firstName: string; lastName: string; email: string; role: string; teamId?: string; locale: string; active: boolean }
 export type Page<T> = { content: T[]; totalElements: number; totalPages: number; number: number }
 
 const tokenKey = 'yazidcv_access_token'
@@ -44,5 +46,10 @@ export const api = {
   updateReview: (id: string, status: string, notes = '') => request<Review>(`/reviews/${id}`, { method: 'PATCH', body: JSON.stringify({ status, notes }) }),
   cvs: () => request<Page<CvDocument>>('/cvs?size=100'),
   integrations: () => request<IntegrationStatus[]>('/integrations'),
+  teams: () => request<Team[]>('/admin/teams'),
+  users: () => request<ManagedUser[]>('/admin/users'),
+  createTeam: (data: object) => request<Team>('/admin/teams', { method: 'POST', body: JSON.stringify(data) }),
+  createUser: (data: object) => request<ManagedUser>('/admin/users', { method: 'POST', body: JSON.stringify(data) }),
+  deactivateUser: (id: string) => request<void>(`/admin/users/${id}`, { method: 'DELETE' }),
   upload: (files: File[]) => { const form = new FormData(); files.forEach(file => form.append('files', file)); return request<CvDocument[]>('/cvs', { method: 'POST', body: form }) },
 }

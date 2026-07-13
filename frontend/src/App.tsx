@@ -10,15 +10,16 @@ import {
 } from 'lucide-react'
 import { api, Candidate, CvDocument, Dashboard as DashboardData, IntegrationStatus, Job, Review, session, User } from './api'
 import { getLocale, Locale, setLocale, tr } from './i18n'
+import AdminPage from './AdminPage'
 
 type ResourceState = { dashboard: DashboardData | null; candidates: Candidate[]; jobs: Job[]; reviews: Review[]; cvs: CvDocument[]; integrations: IntegrationStatus[] }
 const empty: ResourceState = { dashboard: null, candidates: [], jobs: [], reviews: [], cvs: [], integrations: [] }
-const paths = ['/dashboard','/candidates','/jobs','/search','/uploads','/review','/reports','/settings'] as const
+const paths = ['/dashboard','/candidates','/jobs','/search','/uploads','/review','/reports','/settings','/admin'] as const
 type Path = typeof paths[number]
 const nav = [
   { items: [{ path: '/dashboard' as Path, label: 'Overview', icon: LayoutDashboard }] },
   { section: 'Recruitment', items: [{ path: '/candidates' as Path, label: 'Candidates', icon: UsersRound }, { path: '/jobs' as Path, label: 'Jobs', icon: BriefcaseBusiness }, { path: '/search' as Path, label: 'Talent search', icon: Search }] },
-  { section: 'CV intelligence', items: [{ path: '/uploads' as Path, label: 'CV uploads', icon: Upload }, { path: '/review' as Path, label: 'Review queue', icon: FileCheck2 }, { path: '/reports' as Path, label: 'Reports', icon: BarChart3 }, { path: '/settings' as Path, label: 'Settings', icon: Settings }] },
+  { section: 'CV intelligence', items: [{ path: '/uploads' as Path, label: 'CV uploads', icon: Upload }, { path: '/review' as Path, label: 'Review queue', icon: FileCheck2 }, { path: '/reports' as Path, label: 'Reports', icon: BarChart3 }, { path: '/settings' as Path, label: 'Settings', icon: Settings }, { path: '/admin' as Path, label: 'Administration', icon: UsersRound }] },
 ]
 
 export default function App() {
@@ -29,7 +30,7 @@ export default function App() {
 }
 
 function Login({ onLogin,locale,changeLocale }: { onLogin: (u: User) => void; locale:Locale; changeLocale:(l:Locale)=>void }) {
-  const [email, setEmail] = useState('admin@yazidcv.dev'), [password, setPassword] = useState('YazidCV2026!')
+  const [email, setEmail] = useState('admin@curriva.local'), [password, setPassword] = useState('CurrivaAdmin!2026')
   const [busy, setBusy] = useState(false), [error, setError] = useState('')
   async function submit(e: FormEvent) { e.preventDefault(); setBusy(true); setError(''); try { const r = await api.login(email, password); onLogin(r.user) } catch (x) { setError(x instanceof Error ? x.message : 'Login failed') } finally { setBusy(false) } }
   return <main className="login-page"><section className="login-brand"><Logo/><div><span className="eyebrow">{tr('Recruitment intelligence')}</span><h1>{tr('Evidence-led hiring. Human-led decisions.')}</h1><p>{tr('Process CVs, discover talent, and understand every match in one secure workspace.')}</p></div><div className="login-trust"><ShieldCheck/><span><b>{tr('Private by design')}</b><small>Tenant-isolated candidate data and accountable workflows</small></span></div></section><section className="login-panel"><form className="login-card" onSubmit={submit}><LocalePicker locale={locale} change={changeLocale}/><span className="eyebrow">{tr('Welcome back')}</span><h2>{tr('Sign in to YazidCV')}</h2><p>{tr('Use your recruitment workspace credentials.')}</p>{error && <ErrorNotice message={error}/>}<label>{tr('Email address')}<input type="email" required value={email} onChange={e=>setEmail(e.target.value)} autoComplete="username"/></label><label>{tr('Password')}<input type="password" required value={password} onChange={e=>setPassword(e.target.value)} autoComplete="current-password"/></label><button className="primary login-submit" disabled={busy}>{busy?<><LoaderCircle className="spin"/> {tr('Signing in…')}</>:<>{tr('Sign in securely')} <ArrowRight/></>}</button><small className="demo-note">Demo: admin@yazidcv.dev · YazidCV2026!</small></form></section></main>
@@ -46,7 +47,7 @@ function Workspace({ user,locale,changeLocale,onLogout }: { user: User;locale:Lo
     <AnimatePresence>{mobile&&<motion.div className="backdrop" onClick={()=>setMobile(false)} initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}/>}</AnimatePresence>
     <aside className={mobile?'sidebar open':'sidebar'}>
       <div className="side-top"><Logo/><button className="icon-btn mobile-close" onClick={()=>setMobile(false)}><X/></button></div>
-      <div className="workspace"><span className="workspace-avatar">YC</span><span><b>YazidCV Workspace</b><small>{tr('Recruitment')}</small></span></div>
+      <div className="workspace"><span className="workspace-avatar">CU</span><span><b>{user.organization}</b><small>{tr('Recruitment')}</small></span></div>
       <nav>{nav.map((g,i)=><div className="nav-group" key={i}>{g.section&&<span className="nav-label">{tr(g.section)}</span>}{g.items.map(x=><button key={x.path} onClick={()=>go(x.path)} className={location.pathname===x.path?'nav-item active':'nav-item'}><x.icon/><span>{tr(x.label)}</span>{x.path==='/review'&&data.reviews.length>0&&<em>{data.reviews.length}</em>}{x.path==='/jobs'&&data.dashboard&&<em>{data.dashboard.openJobs}</em>}</button>)}</div>)}</nav>
       <div className="sidebar-foot"><div className="system-health"><span className="pulse"/><div><b>{tr('API connected')}</b><small>{tr('Protected workspace')}</small></div></div><button className="profile" onClick={onLogout} title={tr('Sign out')}><span className="avatar">{user.firstName[0]}{user.lastName[0]}</span><span><b>{user.firstName} {user.lastName}</b><small>{user.role}</small></span><LogOut/></button></div>
     </aside>
@@ -65,10 +66,11 @@ function RouteContent({path,data,onCandidate,onJob,modal,refresh}:{path:Path;dat
  if(path==='/uploads')return <UploadsPage cvs={data.cvs} candidates={data.candidates} openCandidate={onCandidate} upload={()=>modal('upload')}/>
  if(path==='/reports')return <ReportsPage data={data}/>
  if(path==='/settings')return <SettingsPage integrations={data.integrations} refresh={refresh}/>
+ if(path==='/admin')return <AdminPage/>
  return <Dashboard data={data} open={onCandidate}/>
 }
 
-function Logo(){return <div className="logo"><span className="logo-mark"><span>Y</span></span><span>Yazid<span className="logo-accent">CV</span></span></div>}
+function Logo(){return <div className="logo" aria-label="Curriva by Yasmid Studio"><span className="logo-mark"><span>C</span></span><span>Curri<span className="logo-accent">va</span></span></div>}
 function PageHeading({eyebrow,title,subtitle,action}:{eyebrow?:string;title:string;subtitle:string;action?:React.ReactNode}){const element=isValidElement<{onClick?:()=>void}>(action)&&action.type==='button'&&!action.props.onClick?cloneElement(action,{onClick:()=>window.location.reload()}):action;return <div className="page-heading"><div>{eyebrow&&<span className="eyebrow">{tr(eyebrow)}</span>}<h1>{tr(title)}</h1><p>{tr(subtitle)}</p></div>{element}</div>}
 function ErrorNotice({message,action}:{message:string;action?:()=>void}){return <div className="error-notice" role="alert"><CircleAlert/><span>{tr(message)}</span>{action&&<button onClick={action}><RefreshCw/> Retry</button>}</div>}
 function Loading(){return <div className="loading-state"><LoaderCircle className="spin"/><h2>{tr('Loading your workspace')}</h2><p>{tr('Fetching protected recruitment data…')}</p></div>}

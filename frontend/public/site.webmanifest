@@ -1,0 +1,11 @@
+{
+  "name": "Curriva",
+  "short_name": "Curriva",
+  "description": "Turn CVs into clear, reviewable candidate insight.",
+  "lang": "en",
+  "dir": "auto",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5f7fa",
+  "theme_color": "#243B67"
+}

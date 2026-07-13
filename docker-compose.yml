@@ -2,8 +2,8 @@ services:
   postgres:
     image: postgres:17-alpine
     environment:
-      POSTGRES_DB: yazidcv
-      POSTGRES_USER: ${DATABASE_USERNAME:-yazidcv}
+      POSTGRES_DB: curriva
+      POSTGRES_USER: ${DATABASE_USERNAME:-curriva}
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-local-development-only}
     volumes: [postgres_data:/var/lib/postgresql/data]
     healthcheck:
@@ -11,15 +11,17 @@ services:
       interval: 5s
       timeout: 3s
       retries: 15
-    networks: [yazidcv]
+    networks: [curriva]
   backend:
     build: ./backend
     environment:
       SPRING_PROFILES_ACTIVE: prod
-      DATABASE_URL: jdbc:postgresql://postgres:5432/yazidcv
-      DATABASE_USERNAME: ${DATABASE_USERNAME:-yazidcv}
+      DATABASE_URL: jdbc:postgresql://postgres:5432/curriva
+      DATABASE_USERNAME: ${DATABASE_USERNAME:-curriva}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD:-local-development-only}
       JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      BOOTSTRAP_ADMIN_EMAIL: ${BOOTSTRAP_ADMIN_EMAIL:-admin@curriva.local}
+      BOOTSTRAP_ADMIN_PASSWORD: ${BOOTSTRAP_ADMIN_PASSWORD:?Set BOOTSTRAP_ADMIN_PASSWORD in .env}
       CORS_ORIGIN: http://localhost:3000
       UPLOAD_DIRECTORY: /app/data/uploads
       PORT: 8080
@@ -33,7 +35,7 @@ services:
       interval: 10s
       timeout: 3s
       retries: 12
-    networks: [yazidcv]
+    networks: [curriva]
   frontend:
     build:
       context: ./frontend
@@ -43,10 +45,10 @@ services:
     depends_on:
       backend:
         condition: service_healthy
-    networks: [yazidcv]
+    networks: [curriva]
 volumes:
   postgres_data:
   cv_uploads:
 networks:
-  yazidcv:
+  curriva:
     driver: bridge

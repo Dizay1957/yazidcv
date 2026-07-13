@@ -20,7 +20,7 @@ class ApiIntegrationTest {
  @TempDir Path temp;
  @Test void loginProtectsScopesDataAndProcessesCv() throws Exception {
   var denied=http.getForEntity("/api/v1/candidates",String.class);assertThat(denied.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
-  var login=http.postForEntity("/api/v1/auth/login",Map.of("email","admin@yazidcv.dev","password","YazidCV2026!"),Map.class);assertThat(login.getStatusCode()).isEqualTo(HttpStatus.OK);
+  var login=http.postForEntity("/api/v1/auth/login",Map.of("email","admin@curriva.local","password","CurrivaAdmin!2026"),Map.class);assertThat(login.getStatusCode()).isEqualTo(HttpStatus.OK);
   String token=(String)login.getBody().get("accessToken");var headers=new HttpHeaders();headers.setBearerAuth(token);
   var candidates=http.exchange("/api/v1/candidates?size=10",HttpMethod.GET,new HttpEntity<>(headers),Map.class);assertThat(candidates.getStatusCode()).isEqualTo(HttpStatus.OK);assertThat(candidates.getBody().get("totalElements")).isEqualTo(4);
   var dashboard=http.exchange("/api/v1/dashboard",HttpMethod.GET,new HttpEntity<>(headers),Map.class);assertThat(dashboard.getStatusCode()).isEqualTo(HttpStatus.OK);assertThat(dashboard.getBody()).containsEntry("openJobs",3).containsEntry("awaitingReview",3);

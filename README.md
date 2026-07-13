@@ -1,13 +1,16 @@
-# YazidCV
+# Curriva
 
-An API-backed CV intelligence and recruitment workspace built with Java 21, Spring Boot 3.5, React 19, PostgreSQL, Flyway, JWT security, and Docker.
+**Turn CVs into clear, reviewable candidate insight.**
+
+Curriva is a multilingual, API-backed recruitment workspace published by Yasmid Studio in Marrakech, Morocco. It is built with Java 21, Spring Boot 3.5, React 19, PostgreSQL, Flyway, JWT security, and Docker.
 
 ## What works
 
-- Signed JWT login and protected API routes
+- Database-backed administrator-managed users, companies, teams, BCrypt passwords, signed JWT login, and protected role-aware API routes
 - Organization-scoped candidate, job, review, upload, and dashboard queries
 - Candidate creation, validation, search, profile details, and CSV export
 - Job creation and persisted recruitment roles
+- Job-specific candidate applications with an enforced Applied → Screening → Shortlisted → Interview/Assessment → Offer → Hired workflow
 - Human review claiming and approval
 - Multi-file PDF, DOC, and DOCX upload with size/type validation
 - Apache Tika 3.3.1 text extraction with automatic candidate creation or email-based candidate reuse
@@ -43,11 +46,11 @@ Open `http://localhost:5173`.
 
 The local backend runs on `http://localhost:18765` because port 8080 is commonly occupied by other developer services. Vite proxies frontend `/api` requests to port 18765, avoiding cross-origin browser failures. Docker continues to expose the backend on port 8080.
 
-Demo credentials:
+Local bootstrap credentials (override them with environment variables before any shared deployment):
 
 ```text
-admin@yazidcv.dev
-YazidCV2026!
+admin@curriva.local
+CurrivaAdmin!2026
 ```
 
 The development database and uploaded files are stored under `data/` when launched from the repository root and are ignored by Git.
@@ -107,11 +110,14 @@ Set at minimum:
 - `JWT_SECRET` with at least 32 random bytes
 - `CORS_ORIGIN` to the exact frontend origin
 - `UPLOAD_DIRECTORY` to a durable private volume
-- `SEED_DEMO=false` after provisioning real identity and organization records
+- `BOOTSTRAP_ADMIN_EMAIL` and a unique `BOOTSTRAP_ADMIN_PASSWORD`; rotate the bootstrap password after first access
+- `SEED_DEMO=false` in production
 - `LINKEDIN_ACCESS_TOKEN` and `LINKEDIN_ORGANIZATION_URN` only after LinkedIn approves the organization as a Talent Solutions partner
 - `INDEED_CLIENT_ID` and `INDEED_CLIENT_SECRET` only after Indeed approves the ATS integration
 
-Terminate TLS at a trusted reverse proxy. Rotate secrets through a secret manager, restrict actuator networking, back up PostgreSQL and the upload volume, and replace the demo in-memory account with the organization identity provider before Internet exposure.
+Terminate TLS at a trusted reverse proxy. Rotate secrets through a secret manager, restrict actuator networking, back up PostgreSQL and the upload volume, and configure malware scanning before Internet exposure.
+
+See [Windows OCR setup](docs/OCR_SETUP_WINDOWS.md), [recruitment workflow](docs/RECRUITMENT_WORKFLOW.md), and [security/privacy baseline](docs/SECURITY_PRIVACY.md).
 
 ## Honest current boundary
 
@@ -119,6 +125,6 @@ The implemented product slice is operational for the screens exposed in the fron
 
 LinkedIn Apply Connect and Indeed Job Sync cannot be activated through code alone: both require partner approval, legal agreements, OAuth credentials, and provider certification. The Settings screen reports actual server configuration readiness and links to official onboarding. It never represents an unapproved provider as connected.
 
-Native OCR execution, MinIO, RabbitMQ retry queues, OpenSearch, semantic embeddings, automated retention, and AI-assisted extraction from the original master brief remain separate backend phases and are not falsely represented as complete. Hiring decisions remain human-controlled.
+MinIO, RabbitMQ retry queues, OpenSearch, semantic embeddings, automated retention execution, and AI-assisted extraction remain separate deployment phases and are not falsely represented as complete. Hiring decisions remain human-controlled.
 
 Apache Tika extraction is now implemented for text-based PDF, DOC, and DOCX CVs. Image-only/scanned documents require Tesseract with English, French, and Arabic language packs available on the backend host. Without that external native dependency the document remains in `OCR_REQUIRED`; YazidCV does not fabricate extracted content.
