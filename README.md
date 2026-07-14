@@ -34,6 +34,12 @@ $env:JAVA_HOME='C:\Program Files\Eclipse Adoptium\jdk-21.0.11.10-hotspot'
 mvn -pl backend spring-boot:run
 ```
 
+On the configured Windows workstation, the checked OCR-aware shortcut is:
+
+```powershell
+.\scripts\start-backend.ps1
+```
+
 Terminal 2:
 
 ```powershell

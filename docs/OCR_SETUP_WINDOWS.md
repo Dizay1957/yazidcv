@@ -1,6 +1,17 @@
 # Tesseract OCR setup on Windows
 
-Curriva uses Apache Tika, which calls the native `tesseract.exe` program for scanned PDF and image CVs. English, French, and Arabic language data are required.
+Curriva uses Apache Tika, which calls the native `tesseract.exe` program for scanned PDF and image CVs. English, French, and Arabic language data are required. On this workstation the verified installation is `D:\TESSERACT-OCR`.
+
+For the current PowerShell session, start Curriva with:
+
+```powershell
+$env:Path='D:\TESSERACT-OCR;' + $env:Path
+$env:TESSDATA_PREFIX='D:\TESSERACT-OCR\tessdata'
+$env:JAVA_HOME='C:\Program Files\Eclipse Adoptium\jdk-21.0.11.10-hotspot'
+mvn -pl backend spring-boot:run
+```
+
+Apache Tika 3 discovers Tesseract from the backend process `Path`, so set these variables in the same PowerShell window before starting Maven.
 
 ## Recommended installation
 
@@ -30,4 +41,3 @@ If `tesseract` is still not recognized, run it once by full path:
 ```
 
 If that succeeds, the remaining issue is the Windows `Path`; restart the terminal or computer. Never download trained-data files from unknown mirrors.
-
