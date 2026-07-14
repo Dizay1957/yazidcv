@@ -8,15 +8,15 @@ Curriva is a multilingual, API-backed recruitment workspace published by Yasmid 
 
 - Database-backed administrator-managed users, companies, teams, BCrypt passwords, signed JWT login, and protected role-aware API routes
 - Organization-scoped candidate, job, review, upload, and dashboard queries
-- Candidate creation, validation, search, profile details, and CSV export
-- Job creation and persisted recruitment roles
+- Candidate creation, validation, full-text search, editable profile details, archive/permanent deletion, and CSV export
+- Job creation, persisted recruitment roles, detail pages, and job-by-job explainable candidate matching
 - Job-specific candidate applications with an enforced Applied → Screening → Shortlisted → Interview/Assessment → Offer → Hired workflow
 - Human review claiming and approval
 - Multi-file PDF, DOC, and DOCX upload with size/type validation
-- Apache Tika 3.3.1 text extraction with automatic candidate creation or email-based candidate reuse
+- Apache Tika 3.3.1 plus Tesseract OCR text extraction with automatic candidate creation or email-based candidate reuse
 - Extracted email, phone, candidate name, likely title, summary, and controlled-vocabulary skills
 - Honest `OCR_REQUIRED` status for image-only CVs when Tesseract is unavailable
-- Safe filenames, private storage, SHA-256 checksums, and duplicate-binary rejection
+- Safe filenames, private storage, SHA-256 checksums, duplicate-binary rejection, and authenticated inline/download CV access from candidate profiles
 - Flyway migrations, optimistic locking, consistent API errors, OpenAPI, health probes, and Prometheus metrics
 - Responsive React workspace with loading, error, empty, session-expiry, and reduced-motion states
 - Persistent English, French, and Arabic UI selection with full document direction switching and RTL-safe responsive layouts
@@ -67,6 +67,7 @@ The development database and uploaded files are stored under `data/` when launch
 yazidcv/
 ├── backend/                 Spring Boot API and CV processing
 ├── frontend/                React, TypeScript and Vite application
+│   └── vercel.json          Vercel SPA routing and browser security headers
 ├── docker-compose.yml       PostgreSQL production-style local stack
 ├── .env.example             Safe configuration template
 └── pom.xml                  Maven reactor
@@ -123,6 +124,31 @@ Set at minimum:
 
 Terminate TLS at a trusted reverse proxy. Rotate secrets through a secret manager, restrict actuator networking, back up PostgreSQL and the upload volume, and configure malware scanning before Internet exposure.
 
+## Deploying the frontend on Vercel
+
+Vercel can host the React frontend, but **deploying this repository only to Vercel is not a complete Curriva deployment**. The Java API, PostgreSQL database, Tesseract OCR process, and private persistent CV storage must run on a container/VM platform with a durable volume (for example, Render, Railway, Fly.io, a cloud container service, or a VPS).
+
+Create the Vercel project with these settings:
+
+| Setting | Value |
+| --- | --- |
+| Root Directory | `frontend` |
+| Framework Preset | Vite |
+| Build Command | `npm run build` |
+| Output Directory | `dist` |
+| Environment variable | `VITE_API_URL=https://api.your-domain.com/api/v1` |
+
+`frontend/vercel.json` supplies the SPA fallback required for direct visits to client-side routes and adds baseline browser security headers. `VITE_API_URL` is public browser configuration, so it must never contain a password, token, or other secret.
+
+On the backend host, set all variables listed under **Production configuration**, plus:
+
+```text
+CORS_ORIGIN=https://your-project.vercel.app
+UPLOAD_DIRECTORY=/path/to/a/private-durable-volume
+```
+
+Use the final custom frontend domain for `CORS_ORIGIN` when one is configured. The database and upload directory must survive restarts and deployments. Run the backend container from `backend/Dockerfile`; it already includes the English, French, and Arabic Tesseract language data. Before exposing the frontend, verify `https://api.your-domain.com/actuator/health`, sign in through the deployed UI, upload and open a CV, create a job, move an application through the workflow, and test English, French, and Arabic/RTL views.
+
 See [Windows OCR setup](docs/OCR_SETUP_WINDOWS.md), [recruitment workflow](docs/RECRUITMENT_WORKFLOW.md), and [security/privacy baseline](docs/SECURITY_PRIVACY.md).
 
 ## Honest current boundary
@@ -133,4 +159,4 @@ LinkedIn Apply Connect and Indeed Job Sync cannot be activated through code alon
 
 MinIO, RabbitMQ retry queues, OpenSearch, semantic embeddings, automated retention execution, and AI-assisted extraction remain separate deployment phases and are not falsely represented as complete. Hiring decisions remain human-controlled.
 
-Apache Tika extraction is now implemented for text-based PDF, DOC, and DOCX CVs. Image-only/scanned documents require Tesseract with English, French, and Arabic language packs available on the backend host. Without that external native dependency the document remains in `OCR_REQUIRED`; YazidCV does not fabricate extracted content.
+Apache Tika extraction is implemented for text-based PDF, DOC, and DOCX CVs. Image-only/scanned documents require Tesseract with English, French, and Arabic language packs available on the backend host. Without that external native dependency the document remains in `OCR_REQUIRED`; Curriva does not fabricate extracted content.
