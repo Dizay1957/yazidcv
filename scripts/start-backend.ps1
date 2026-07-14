@@ -1,6 +1,7 @@
 param(
     [string]$TesseractHome = 'D:\TESSERACT-OCR',
-    [string]$JavaHome = 'C:\Program Files\Eclipse Adoptium\jdk-21.0.11.10-hotspot'
+    [string]$JavaHome = 'C:\Program Files\Eclipse Adoptium\jdk-21.0.11.10-hotspot',
+    [switch]$ValidateOnly
 )
 
 $ErrorActionPreference = 'Stop'
@@ -11,9 +12,9 @@ if (-not (Test-Path -LiteralPath $executable)) {
     throw "Tesseract was not found at $executable"
 }
 
-$languages = & $executable --list-langs 2>&1 | Out-String
+$languages = @(& $executable --list-langs 2>&1) | ForEach-Object { $_.ToString().Trim() }
 foreach ($language in @('eng', 'fra', 'ara')) {
-    if ($languages -notmatch "(?m)^$language$") {
+    if ($language -notin $languages) {
         throw "Required Tesseract language '$language' is missing from $tessdata"
     }
 }
@@ -27,4 +28,8 @@ $env:Path = "$TesseractHome;$env:Path"
 $env:TESSDATA_PREFIX = $tessdata
 
 Write-Host 'Starting Curriva with Tesseract OCR languages: eng, fra, ara'
+if ($ValidateOnly) {
+    Write-Host 'Tesseract and Java validation passed.'
+    exit 0
+}
 mvn -pl backend spring-boot:run
