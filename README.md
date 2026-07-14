@@ -4,6 +4,39 @@
 
 Curriva is a multilingual, API-backed recruitment workspace published by Yasmid Studio in Marrakech, Morocco. It is built with Java 21, Spring Boot 3.5, React 19, PostgreSQL, Flyway, JWT security, and Docker.
 
+## Product tour
+
+### Live recruitment overview
+
+![Curriva live recruitment dashboard](docs/screenshots/dashboard.png)
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/candidates.png" alt="Tenant-scoped candidate directory and evidence scores"></td>
+    <td width="50%"><img src="docs/screenshots/talentsearch.png" alt="Structured talent search across persisted candidate profiles"></td>
+  </tr>
+  <tr>
+    <td align="center"><strong>Candidate directory</strong></td>
+    <td align="center"><strong>Evidence-based talent search</strong></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/cvupload.png" alt="Private multilingual CV upload and processing workspace"></td>
+    <td width="50%"><img src="docs/screenshots/openroles.png" alt="Open recruitment roles backed by persisted job data"></td>
+  </tr>
+  <tr>
+    <td align="center"><strong>CV processing</strong></td>
+    <td align="center"><strong>Open roles</strong></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/reports.png" alt="Live recruitment reports and CSV export"></td>
+    <td width="50%"><img src="docs/screenshots/administration.png" alt="Administrator-controlled users and organization teams"></td>
+  </tr>
+  <tr>
+    <td align="center"><strong>Operational reporting</strong></td>
+    <td align="center"><strong>People and teams</strong></td>
+  </tr>
+</table>
+
 ## What works
 
 - Database-backed administrator-managed users, companies, teams, BCrypt passwords, signed JWT login, and protected role-aware API routes
