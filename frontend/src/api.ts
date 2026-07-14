@@ -2,7 +2,8 @@ const API_URL = import.meta.env.VITE_API_URL ?? '/api/v1'
 
 export type User = { firstName: string; lastName: string; email: string; role: string; organization: string }
 export type JobMatch = { jobId: string; jobTitle: string; department?: string; location?: string; workplaceType?: string; score: number; skillScore: number; titleScore: number; locationScore: number; matchedSkills: string[]; missingSkills: string[]; explanation: string }
-export type Candidate = { id: string; firstName: string; lastName: string; fullName: string; initials: string; email?: string; phone?: string; currentTitle: string; currentCompany?: string; city?: string; country?: string; yearsExperience: number; status: string; source: string; professionalSummary?: string; skills: string[]; matchScore: number; jobMatches: JobMatch[]; linkedinUrl?: string; githubUrl?: string; spokenLanguages: string[]; educationSummary?: string; experienceSummary?: string; projectsSummary?: string; extractionConfidence: number; createdAt: string; updatedAt: string }
+export type CvAttachment = { id: string; filename: string; contentType: string; fileSize: number; status: string; uploadedAt: string }
+export type Candidate = { id: string; firstName: string; lastName: string; fullName: string; initials: string; email?: string; phone?: string; currentTitle: string; currentCompany?: string; city?: string; country?: string; yearsExperience: number; status: string; source: string; professionalSummary?: string; skills: string[]; matchScore: number; jobMatches: JobMatch[]; attachments: CvAttachment[]; linkedinUrl?: string; githubUrl?: string; spokenLanguages: string[]; educationSummary?: string; experienceSummary?: string; projectsSummary?: string; extractionConfidence: number; createdAt: string; updatedAt: string }
 export type Job = { id: string; title: string; department?: string; location?: string; workplaceType?: string; description?: string; requiredSkills: string[]; status: string; candidateCount: number; closingDate?: string; updatedAt: string }
 export type Review = { id: string; candidateId: string; candidateName: string; initials: string; currentTitle: string; reason: string; confidence: number; priority: string; status: string; createdAt: string }
 export type CvDocument = { id: string; candidateId?: string; originalFilename: string; contentType: string; fileSize: number; status: string; extractionMethod?: string; processingError?: string; uploadedAt: string; completedAt?: string }
@@ -33,6 +34,8 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   return response.json()
 }
 
+async function cvFile(id:string,filename:string,download:boolean){const viewer=download?null:window.open('about:blank','_blank');const response=await fetch(`${API_URL}/cvs/${id}/content?disposition=${download?'attachment':'inline'}`,{headers:{Authorization:`Bearer ${session.token()}`}});if(!response.ok){viewer?.close();throw new ApiError(response.status,'Unable to open CV')}const url=URL.createObjectURL(await response.blob());if(download){const a=document.createElement('a');a.href=url;a.download=filename;a.click()}else if(viewer)viewer.location.href=url;else window.location.href=url;setTimeout(()=>URL.revokeObjectURL(url),60_000)}
+
 export const api = {
   login: async (email: string, password: string) => { const data = await request<{ accessToken: string; user: User }>('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }); sessionStorage.setItem(tokenKey, data.accessToken); sessionStorage.setItem('yazidcv_user', JSON.stringify(data.user)); return data },
   dashboard: () => request<Dashboard>('/dashboard'),
@@ -48,6 +51,8 @@ export const api = {
   updateReview: (id: string, status: string, notes = '') => request<Review>(`/reviews/${id}`, { method: 'PATCH', body: JSON.stringify({ status, notes }) }),
   cvs: () => request<Page<CvDocument>>('/cvs?size=100'),
   deleteCv: (id: string) => request<void>(`/cvs/${id}`, { method: 'DELETE' }),
+  openCv: (id: string, filename: string) => cvFile(id,filename,false),
+  downloadCv: (id: string, filename: string) => cvFile(id,filename,true),
   integrations: () => request<IntegrationStatus[]>('/integrations'),
   teams: () => request<Team[]>('/admin/teams'),
   users: () => request<ManagedUser[]>('/admin/users'),
